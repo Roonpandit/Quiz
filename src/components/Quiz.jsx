@@ -8,7 +8,6 @@ const Quiz = () => {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [incorrectAnswers, setIncorrectAnswers] = useState(0);
-  const [feedback, setFeedback] = useState('');
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
   const [showConfirmationPopup, setShowConfirmationPopup] = useState(false);
@@ -24,59 +23,50 @@ const Quiz = () => {
 
   const handleAnswerSelect = (answer) => {
     setSelectedAnswer(answer);
+    if (answer === questions[currentQuestionIndex].correct_answer) {
+      setCorrectAnswers((prev) => prev + 1);
+    } else {
+      setIncorrectAnswers((prev) => prev + 1);
+    }
+  };
+
+  const feedbackClass = (option) => {
+    if (selectedAnswer) {
+      if (option === questions[currentQuestionIndex].correct_answer) return 'green';
+      if (option === selectedAnswer) return 'red';
+    }
+    return '';
   };
 
   const handleNextQuestion = () => {
     if (selectedAnswer) {
-      if (selectedAnswer === questions[currentQuestionIndex].correct_answer) {
-        setCorrectAnswers((prev) => prev + 1);
-      } else {
-        setIncorrectAnswers((prev) => prev + 1);
-      }
-
-      // If it's the last question, show the confirmation popup
       if (currentQuestionIndex === questions.length - 1) {
         setShowConfirmationPopup(true);
       } else {
-        setTimeout(() => {
-          setCurrentQuestionIndex((prev) => prev + 1);
-          setSelectedAnswer(null);
-          setFeedback('');
-        }, 500); // Short delay for feedback display
+        setCurrentQuestionIndex((prev) => prev + 1);
+        setSelectedAnswer(null);
       }
     }
-  };
-
-  const handlePreviousQuestion = () => {
-    setCurrentQuestionIndex((prev) => prev - 1);
-    setFeedback('');
   };
 
   const handleFinishQuiz = () => {
     const totalQuestions = questions.length;
-    const percentage = ((correctAnswers / totalQuestions) * 100).toFixed(2); // Round to 2 decimal places
+    const percentage = ((correctAnswers / totalQuestions) * 100).toFixed(2);
     setScore(percentage);
 
-    // Get user name and update leaderboard
     const userName = JSON.parse(localStorage.getItem('quizSetup')).name;
     const leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
 
-    leaderboard.push({
-      name: userName,
-      score: percentage,
-    });
-
+    leaderboard.push({ name: userName, score: percentage });
     leaderboard.sort((a, b) => b.score - a.score);
 
     localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
-    setShowResult(true); // Show result after finishing the quiz
+    setShowResult(true);
   };
 
   const handleConfirmation = (confirmation) => {
-    if (confirmation === 'yes') {
-      handleFinishQuiz(); // Finish the quiz if "Yes"
-    }
-    setShowConfirmationPopup(false); // Close the popup
+    if (confirmation === 'yes') handleFinishQuiz();
+    setShowConfirmationPopup(false);
   };
 
   if (!questions.length) return <div className="loading">Loading...</div>;
@@ -96,18 +86,15 @@ const Quiz = () => {
                 <button
                   key={index}
                   onClick={() => handleAnswerSelect(option)}
-                  className={selectedAnswer === option ? 'selected' : ''}
+                  className={`option-button ${feedbackClass(option)}`}
+                  disabled={selectedAnswer !== null}
                 >
                   {option}
                 </button>
               ))}
           </div>
-          {feedback && <div className="feedback">{feedback}</div>}
           <div className="buttons">
-            {currentQuestionIndex > 0 && (
-              <button onClick={handlePreviousQuestion}>Previous</button>
-            )}
-            {/* Show Next button */}
+            {currentQuestionIndex > 0 && <button onClick={() => setCurrentQuestionIndex((prev) => prev - 1)}>Previous</button>}
             <button onClick={handleNextQuestion}>
               {currentQuestionIndex === questions.length - 1 ? 'Finish Quiz' : 'Next'}
             </button>
