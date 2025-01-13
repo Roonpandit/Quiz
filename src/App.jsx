@@ -3,10 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './components/Home';
 import Quiz from './components/Quiz';
 import Leaderboard from './components/Leaderboard';
-import Navbar from './components/Navbar';  
-import './styles/home.css';
-import './styles/quiz.css';
-import './styles/leaderboard.css';
+import Navbar from './components/Navbar';
 
 function App() {
   return (
